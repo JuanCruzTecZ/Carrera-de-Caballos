@@ -231,11 +231,17 @@ function App() {
     const ids = syncedOverlay.playerIds || [];
     if (!ids.length) return null;
     const now = Date.now();
+    const startedAt = Number(syncedOverlay.startedAt) || now;
+    const revealAt = Number(syncedOverlay.revealAt) || now;
+    const finalRotation = Number(syncedOverlay.finalRotation) || 0;
+    const progress = revealAt <= startedAt ? 1 : Math.max(0, Math.min(1, (now - startedAt) / (revealAt - startedAt)));
+    const easedProgress = 1 - (1 - progress) * (1 - progress);
     if (now >= syncedOverlay.revealAt) {
       return {
         title: syncedOverlay.title,
         activeHorseId: syncedOverlay.winnerId,
         winnerHorseId: syncedOverlay.winnerId,
+        wheelRotation: finalRotation,
       };
     }
     const ticks = Math.max(0, Math.floor((now - syncedOverlay.startedAt) / 90));
@@ -243,6 +249,7 @@ function App() {
       title: syncedOverlay.title,
       activeHorseId: ids[ticks % ids.length],
       winnerHorseId: "",
+      wheelRotation: finalRotation * easedProgress,
     };
   }
 
@@ -1251,7 +1258,7 @@ function App() {
               <h3>Decidiendo qué caballo avanza</h3>
               <div className="roulette-stage">
                 <div className="roulette-pointer" />
-                <div className="roulette-wheel round-wheel">
+                <div className="roulette-wheel round-wheel" style={{ transform: `rotate(${visibleOverlay.wheelRotation || 0}deg)` }}>
                   {orderedPlayers.map((player, index) => {
                     const rotation = (360 / orderedPlayers.length) * index;
                     return (
@@ -1269,7 +1276,10 @@ function App() {
                           transform: `rotate(${rotation}deg)`,
                         }}
                       >
-                        <div className="round-segment-label" style={{ transform: `translateX(-50%) rotate(${-rotation}deg)` }}>
+                        <div
+                          className="round-segment-label"
+                          style={{ transform: `translateX(-50%) rotate(${-(rotation + (visibleOverlay.wheelRotation || 0))}deg)` }}
+                        >
                           <span className="roulette-number">#{player.horseNumber}</span>
                           <span>{player.name}</span>
                         </div>

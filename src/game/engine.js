@@ -853,6 +853,10 @@ export function getRaceLeaderIds(room) {
 }
 
 export function createRouletteOverlay(title, players, winnerId) {
+  const playerIds = players.map((player) => player.id);
+  const winnerIndex = Math.max(0, playerIds.indexOf(winnerId));
+  const segmentAngle = 360 / Math.max(playerIds.length, 1);
+  const fullTurns = 5 + Math.floor(Math.random() * 3);
   return {
     type: "roulette",
     title,
@@ -860,8 +864,9 @@ export function createRouletteOverlay(title, players, winnerId) {
     startedAt: Date.now(),
     revealAt: Date.now() + 1800,
     endsAt: Date.now() + 2800,
-    playerIds: players.map((player) => player.id),
+    playerIds,
     winnerId,
+    finalRotation: fullTurns * 360 - winnerIndex * segmentAngle,
   };
 }
 
