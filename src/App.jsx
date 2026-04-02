@@ -184,13 +184,36 @@ function App() {
   }, [room?.race?.history?.[0]?.id, room?.phase]);
 
   useEffect(() => {
+    if (!classicSpinState.open) return undefined;
+    const timeout = window.setTimeout(() => {
+      setClassicSpinState({
+        open: false,
+        activeHorseId: "",
+        winnerHorseId: "",
+        title: "Ruleta del nivel",
+      });
+    }, 12000);
+    return () => window.clearTimeout(timeout);
+  }, [classicSpinState.open]);
+
+  useEffect(() => {
+    if (room?.phase === ROOM_PHASES.RACE) return;
+    setClassicSpinState({
+      open: false,
+      activeHorseId: "",
+      winnerHorseId: "",
+      title: "Ruleta del nivel",
+    });
+  }, [room?.phase]);
+
+  useEffect(() => {
     if (room?.phase !== ROOM_PHASES.RACE || room?.settings?.mode !== GAME_MODES.RANDOM) return;
-    if (!currentChallenge || !challengePanelRef.current) return;
+    if (!room?.race?.currentChallenge || !challengePanelRef.current) return;
     const timeout = window.setTimeout(() => {
       challengePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 120);
     return () => window.clearTimeout(timeout);
-  }, [currentChallenge?.type, room?.phase, room?.settings?.mode]);
+  }, [room?.race?.currentChallenge?.type, room?.phase, room?.settings?.mode]);
 
   const orderedPlayers = useMemo(() => getOrderedPlayers(room || { players: {}, playerOrder: [] }), [room]);
   const connectionCounts = useMemo(() => (room ? getPlayerConnectionCounts(room) : {}), [room]);
@@ -222,6 +245,12 @@ function App() {
       });
     } catch (error) {
       console.error(error);
+      setClassicSpinState({
+        open: false,
+        activeHorseId: "",
+        winnerHorseId: "",
+        title: "Ruleta del nivel",
+      });
       setMessage(`No se pudo actualizar la carrera. ${error?.message || ""}`.trim());
     }
   }
