@@ -5,6 +5,7 @@ import {
   allPlayersBet,
   allPlayersReady,
   confirmPredrink,
+  createRouletteOverlay,
   createRandomChallenge,
   hasActiveLock,
   normalizeHost,
@@ -184,29 +185,6 @@ function App() {
   }, [room?.race?.history?.[0]?.id, room?.phase]);
 
   useEffect(() => {
-    if (!classicSpinState.open) return undefined;
-    const timeout = window.setTimeout(() => {
-      setClassicSpinState({
-        open: false,
-        activeHorseId: "",
-        winnerHorseId: "",
-        title: "Ruleta del nivel",
-      });
-    }, 12000);
-    return () => window.clearTimeout(timeout);
-  }, [classicSpinState.open]);
-
-  useEffect(() => {
-    if (room?.phase === ROOM_PHASES.RACE) return;
-    setClassicSpinState({
-      open: false,
-      activeHorseId: "",
-      winnerHorseId: "",
-      title: "Ruleta del nivel",
-    });
-  }, [room?.phase]);
-
-  useEffect(() => {
     if (room?.phase !== ROOM_PHASES.RACE || room?.settings?.mode !== GAME_MODES.RANDOM) return;
     if (!room?.race?.currentChallenge || !challengePanelRef.current) return;
     const timeout = window.setTimeout(() => {
@@ -224,6 +202,7 @@ function App() {
   const isHost = room?.hostClientId === session.clientId;
   const canManageAllPlayers = !session.controlledPlayerId || isHost;
   const actionLocked = room?.actionLock?.expiresAt > Date.now();
+  const syncedOverlay = room?.race?.overlay || null;
 
   function canControlPlayer(playerId) {
     return canManageAllPlayers || session.controlledPlayerId === playerId;
@@ -233,6 +212,26 @@ function App() {
     if (session.controlledPlayerId === playerId) return true;
     if (isHost && (connectionCounts[playerId] || 0) === 0) return true;
     return false;
+  }
+
+  function getOverlayVisualState() {
+    if (!syncedOverlay?.open) return null;
+    const ids = syncedOverlay.playerIds || [];
+    if (!ids.length) return null;
+    const now = Date.now();
+    if (now >= syncedOverlay.revealAt) {
+      return {
+        title: syncedOverlay.title,
+        activeHorseId: syncedOverlay.winnerId,
+        winnerHorseId: syncedOverlay.winnerId,
+      };
+    }
+    const ticks = Math.max(0, Math.floor((now - syncedOverlay.startedAt) / 90));
+    return {
+      title: syncedOverlay.title,
+      activeHorseId: ids[ticks % ids.length],
+      winnerHorseId: "",
+    };
   }
 
   async function runRoomMutation(mutator) {
@@ -392,6 +391,13 @@ function App() {
     }
     const contenders = orderedPlayers;
     if (!contenders.length) return;
+    const winner = contenders[Math.floor(Math.random() * contenders.length)];
+
+    await runRoomMutation((draft) => {
+      if (!draft?.race) return draft;
+      draft.race.overlay = createRouletteOverlay("Ruleta del nivel", contenders, winner.id);
+      return draft;
+    });
 
     setClassicSpinState({
       open: true,
@@ -411,8 +417,6 @@ function App() {
       }));
     }, 90);
 
-    const winner = contenders[Math.floor(Math.random() * contenders.length)];
-
     window.setTimeout(async () => {
       window.clearInterval(interval);
       setClassicSpinState({
@@ -429,15 +433,16 @@ function App() {
           if (!target) return draft;
           draft.race ||= { mode: GAME_MODES.CLASSIC, round: 0, winnerId: null, currentChallenge: null, history: [] };
           draft.race.history ||= [];
+          const roundPenalty = Math.floor(Math.random() * 6) + 1;
           draft.race.round = (Number(draft.race.round) || 0) + 1;
           target.position = Math.min((Number(target.position) || 0) + 1, FINISH_LEVEL);
-          target.totalPenaltyDrinks = (Number(target.totalPenaltyDrinks) || 0) + 3;
+          target.totalPenaltyDrinks = (Number(target.totalPenaltyDrinks) || 0) + roundPenalty;
           draft.race.history.unshift({
             id: uid("round"),
             createdAt: Date.now(),
             mode: GAME_MODES.CLASSIC,
             title: `Ronda ${draft.race.round}`,
-            description: `${target.name} ganó la ruleta, avanzó un nivel y debe tomar 3 tragos.`,
+            description: `${target.name} ganó la ruleta, avanzó un nivel y acumuló ${roundPenalty} tragos.`,
             winners: [target.id],
           });
           if (target.position >= FINISH_LEVEL) {
@@ -446,6 +451,7 @@ function App() {
             draft.race.summary = `${target.name} llegó al nivel ${FINISH_LEVEL} y debe repartir ${target.betDrinks} tragos.`;
             draft.race.currentChallenge = null;
           }
+          draft.race.overlay = null;
           releaseLock(draft, "resolve_classic", session.clientId);
           return draft;
         });
@@ -482,6 +488,13 @@ function App() {
       }
       const contenders = orderedPlayers;
       if (!contenders.length) return;
+      const winner = contenders[Math.floor(Math.random() * contenders.length)];
+
+      await runRoomMutation((draft) => {
+        if (!draft?.race) return draft;
+        draft.race.overlay = createRouletteOverlay("Ruleta RANDOM", contenders, winner.id);
+        return draft;
+      });
 
       setClassicSpinState({
         open: true,
@@ -503,7 +516,6 @@ function App() {
       const spinTicks = 18 + Math.floor(Math.random() * 8);
       window.setTimeout(() => {
         window.clearInterval(interval);
-        const winner = contenders[Math.floor(Math.random() * contenders.length)];
         setClassicSpinState({
           open: true,
           activeHorseId: winner?.id || "",
@@ -514,6 +526,7 @@ function App() {
         window.setTimeout(async () => {
           await runRoomMutation((draft) => {
             const updated = resolveRandomChallenge(draft);
+            if (updated?.race) updated.race.overlay = null;
             releaseLock(updated, "resolve_random_dice", session.clientId);
             return updated;
           });
@@ -709,7 +722,7 @@ function App() {
                 disabled={!isHost}
               >
                 <strong>CLASICO</strong>
-                <span>Ruleta aleatoria. Si tu caballo sube, ese grupo toma 3 tragos.</span>
+                <span>Ruleta aleatoria. Cada avance acumula entre 1 y 6 tragos al resultado final.</span>
               </button>
               <button
                 className={room.settings.mode === GAME_MODES.RANDOM ? "mode-card active" : "mode-card"}
@@ -1152,7 +1165,7 @@ function App() {
           <div className="panel compact-panel">
             <div className="eyebrow">Ruleta</div>
             <h3>Resolución del nivel</h3>
-            <p className="panel-copy">La ruleta decide quién gana el nivel. Si sube, ese grupo toma 3 tragos.</p>
+            <p className="panel-copy">La ruleta decide quién gana el nivel. Cada avance suma una penalidad aleatoria de 1 a 6 tragos.</p>
             <button className="primary-btn block-btn" onClick={handleSpinClassic} disabled={!isHost || actionLocked}>
               Girar ruleta
             </button>
@@ -1194,6 +1207,9 @@ function App() {
       );
     }
 
+    const overlayVisual = getOverlayVisualState();
+    const visibleOverlay = overlayVisual || (classicSpinState.open ? classicSpinState : null);
+
     return (
       <section className="screen race-screen">
         <header className="topbar">
@@ -1216,10 +1232,10 @@ function App() {
           <section className="panel track-panel">{renderTrack()}</section>
           {renderRaceSidebar()}
         </div>
-        {classicSpinState.open ? (
+        {visibleOverlay ? (
           <div className="roulette-overlay">
             <div className="roulette-card">
-              <div className="eyebrow">{classicSpinState.title}</div>
+              <div className="eyebrow">{visibleOverlay.title}</div>
               <h3>Decidiendo qué caballo avanza</h3>
               <div className="roulette-stage">
                 <div className="roulette-pointer" />
@@ -1230,8 +1246,8 @@ function App() {
                       <div
                         key={player.id}
                         className={
-                          classicSpinState.activeHorseId === player.id
-                            ? classicSpinState.winnerHorseId === player.id
+                          visibleOverlay.activeHorseId === player.id
+                            ? visibleOverlay.winnerHorseId === player.id
                               ? "roulette-segment round-segment active winner"
                               : "roulette-segment round-segment active"
                             : "roulette-segment round-segment"
@@ -1252,9 +1268,9 @@ function App() {
                 </div>
               </div>
               <div className="roulette-current">
-                {classicSpinState.activeHorseId
+                {visibleOverlay.activeHorseId
                   ? `Caballo seleccionado: ${
-                      orderedPlayers.find((player) => player.id === classicSpinState.activeHorseId)?.name || ""
+                      orderedPlayers.find((player) => player.id === visibleOverlay.activeHorseId)?.name || ""
                     }`
                   : ""}
               </div>

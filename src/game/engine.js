@@ -69,6 +69,7 @@ function createRaceState(mode) {
     currentChallenge: null,
     history: [],
     challengeQueue: mode === GAME_MODES.RANDOM ? shuffle(RANDOM_SEQUENCE) : [],
+    overlay: null,
   };
 }
 
@@ -77,6 +78,7 @@ function ensureRaceState(room) {
   room.race.history ||= [];
   room.race.round = Number(room.race.round) || 0;
   room.race.challengeQueue ||= room.race.mode === GAME_MODES.RANDOM ? shuffle(RANDOM_SEQUENCE) : [];
+  room.race.overlay ||= null;
   room.actionLock ||= { key: "", ownerClientId: "", expiresAt: 0 };
   return room;
 }
@@ -391,14 +393,15 @@ export function resolveClassicSpin(room) {
   if (!contenders.length) return room;
 
   const winner = randomItem(contenders);
+  const roundPenalty = Math.floor(Math.random() * 6) + 1;
   room.race.round += 1;
   winner.position = clamp((Number(winner.position) || 0) + 1, 0, FINISH_LEVEL);
-  winner.totalPenaltyDrinks = (Number(winner.totalPenaltyDrinks) || 0) + 3;
+  winner.totalPenaltyDrinks = (Number(winner.totalPenaltyDrinks) || 0) + roundPenalty;
 
   recordHistory(room, {
     mode: GAME_MODES.CLASSIC,
     title: `Ronda ${room.race.round}`,
-    description: `${winner.name} ganó la ruleta, avanzó un nivel y debe tomar 3 tragos.`,
+    description: `${winner.name} ganó la ruleta, avanzó un nivel y acumuló ${roundPenalty} tragos.`,
     winners: [winner.id],
   });
 
@@ -689,14 +692,18 @@ function resolveFinalAdvance(room, winnerIds, title, description) {
     }
   }
 
+  const penaltyMap = {};
   allowedWinners.forEach((playerId) => {
+    const penalty = Math.floor(Math.random() * 6) + 1;
+    penaltyMap[playerId] = penalty;
     room.players[playerId].position = clamp((Number(room.players[playerId].position) || 0) + 1, 0, FINISH_LEVEL);
+    room.players[playerId].totalPenaltyDrinks = (Number(room.players[playerId].totalPenaltyDrinks) || 0) + penalty;
   });
 
   recordHistory(room, {
     mode: GAME_MODES.RANDOM,
     title,
-    description,
+    description: `${description} ${allowedWinners.length ? `Penalidad acumulada: ${allowedWinners.map((playerId) => `${room.players[playerId].name} +${penaltyMap[playerId]}`).join(", ")}.` : ""}`.trim(),
     winners: allowedWinners,
     tieBreakWinnerId,
   });
@@ -843,6 +850,19 @@ export function getRaceLeaderIds(room) {
   const players = getOrderedPlayers(room);
   const bestPosition = Math.max(...players.map((player) => player.position), 0);
   return players.filter((player) => player.position === bestPosition).map((player) => player.id);
+}
+
+export function createRouletteOverlay(title, players, winnerId) {
+  return {
+    type: "roulette",
+    title,
+    open: true,
+    startedAt: Date.now(),
+    revealAt: Date.now() + 1800,
+    endsAt: Date.now() + 2800,
+    playerIds: players.map((player) => player.id),
+    winnerId,
+  };
 }
 
 export function getRandomQueuePreview(room) {
