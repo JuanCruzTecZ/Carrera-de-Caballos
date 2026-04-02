@@ -1,0 +1,78 @@
+{
+  "rules": {
+    "horse-race-rooms": {
+      "$roomId": {
+        ".read": true,
+        ".write": true,
+        "code": {
+          ".validate": "newData.isString() && newData.val().length >= 4 && newData.val().length <= 8"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "phase": {
+          ".validate": "newData.isString() && (newData.val() === 'setup' || newData.val() === 'bets' || newData.val() === 'predrink' || newData.val() === 'race' || newData.val() === 'finished')"
+        },
+        "hostClientId": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "settings": {
+          "mode": {
+            ".validate": "newData.isString() && (newData.val() === 'CLASSIC' || newData.val() === 'RANDOM')"
+          }
+        },
+        "players": {
+          "$playerId": {
+            ".validate": "newData.hasChildren(['id','name','horseNumber','color','createdBy','joinedAt','position','betDrinks','drankBeforeStart'])",
+            "id": {
+              ".validate": "newData.val() === $playerId"
+            },
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 18"
+            },
+            "horseNumber": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 6"
+            },
+            "position": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7"
+            },
+            "betDrinks": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99"
+            },
+            "drankBeforeStart": {
+              ".validate": "newData.isBoolean()"
+            }
+          }
+        },
+        "clients": {
+          "$clientId": {
+            ".validate": "newData.hasChildren(['id'])",
+            "id": {
+              ".validate": "newData.val() === $clientId"
+            },
+            "controlledPlayerId": {
+              ".validate": "newData.isString()"
+            },
+            "joinedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "lastSeenAt": {
+              ".validate": "newData.isNumber()"
+            }
+          }
+        },
+        "race": {
+          "round": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "winnerId": {
+            ".validate": "newData.val() === null || newData.isString()"
+          }
+        }
+      }
+    }
+  }
+}
