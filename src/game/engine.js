@@ -703,7 +703,7 @@ function resolveFinalAdvance(room, winnerIds, title, description) {
   recordHistory(room, {
     mode: GAME_MODES.RANDOM,
     title,
-    description: `${description} ${allowedWinners.length ? `Penalidad acumulada: ${allowedWinners.map((playerId) => `${room.players[playerId].name} +${penaltyMap[playerId]}`).join(", ")}.` : ""}`.trim(),
+    description: `${description} ${allowedWinners.length ? `tragos pagados durante la carrera: ${allowedWinners.map((playerId) => `${room.players[playerId].name} +${penaltyMap[playerId]}`).join(", ")}.` : ""}`.trim(),
     winners: allowedWinners,
     tieBreakWinnerId,
   });

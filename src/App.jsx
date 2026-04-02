@@ -197,6 +197,10 @@ function App() {
   }, [room?.race?.history?.[0]?.id, room?.phase]);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [session.roomId, room?.phase]);
+
+  useEffect(() => {
     if (room?.phase !== ROOM_PHASES.RACE || room?.settings?.mode !== GAME_MODES.RANDOM) return;
     if (!room?.race?.currentChallenge || !challengePanelRef.current) return;
     const timeout = window.setTimeout(() => {
@@ -461,7 +465,7 @@ function App() {
             createdAt: Date.now(),
             mode: GAME_MODES.CLASSIC,
             title: `Ronda ${draft.race.round}`,
-            description: `${target.name} ganó la ruleta, avanzó un nivel y acumuló ${roundPenalty} tragos.`,
+            description: `${target.name} ganó la ruleta, avanzó un escalon y tiene que tomar ${roundPenalty} tragos.`,
             winners: [target.id],
           });
           if (target.position >= FINISH_LEVEL) {
