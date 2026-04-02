@@ -467,7 +467,7 @@ function generateMathChallenge() {
 function generateDiceChallenge() {
   return {
     type: RANDOM_CHALLENGE_TYPES.DICE,
-    prompt: "El dado decide qué caballo avanza un nivel.",
+    prompt: "la rula decide qué caballo avanza un nivel.",
   };
 }
 
@@ -559,7 +559,7 @@ function generatePokerChallenge(room) {
 
   return {
     type: RANDOM_CHALLENGE_TYPES.POKER,
-    prompt: "se reparte una mano de pocker automatica.",
+    prompt: "se reparte una mano de poker automatica.",
     hands,
   };
 }
@@ -591,7 +591,7 @@ function generateSecretSymbolChallenge() {
 function generateNumberTargetChallenge() {
   return {
     type: RANDOM_CHALLENGE_TYPES.NUMBER_TARGET,
-    prompt: "Cada jugador elige un número del 1 al 100. La app elige uno y avanzan los más cercanos.",
+    prompt: "Cada jugador elige un número del 1 al 100. se genera uno random y avanzan los más cercanos a el.",
     targetNumber: Math.floor(Math.random() * 100) + 1,
     picks: {},
   };
@@ -703,7 +703,7 @@ function resolveFinalAdvance(room, winnerIds, title, description) {
   recordHistory(room, {
     mode: GAME_MODES.RANDOM,
     title,
-    description: `${description} ${allowedWinners.length ? `tragos pagados durante la carrera: ${allowedWinners.map((playerId) => `${room.players[playerId].name} +${penaltyMap[playerId]}`).join(", ")}.` : ""}`.trim(),
+    description: `${description} ${allowedWinners.length ? `tragos pagados durante la carrera: ${allowedWinners.map((playerId) => `${room.players[playerId].name} toma ${penaltyMap[playerId]}`).join(", ")}.` : ""}`.trim(),
     winners: allowedWinners,
     tieBreakWinnerId,
   });
@@ -733,8 +733,8 @@ export function resolveRandomChallenge(room) {
     return resolveFinalAdvance(
       room,
       winner ? [winner.id] : [],
-      `Ronda ${room.race.round}: Dado`,
-      winner ? `${winner.name} fue elegido al azar por el dado.` : "El dado no encontró ganador.",
+      `Ronda ${room.race.round}: rula`,
+      winner ? `${winner.name} fue elegido al azar por la rula.` : "la rula no encontró ganador.",
     );
   }
 
