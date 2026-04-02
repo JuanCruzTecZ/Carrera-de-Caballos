@@ -598,13 +598,13 @@ function App() {
         <div className="landing-grid">
           <div className="hero-card">
             <div className="eyebrow">Carrera de Caballos</div>
-            <h1>Juego de carrera, apuestas de tragos y resolución en tiempo real.</h1>
+            <h1>Juego de carrera de caballos y apuestas de tragos.</h1>
             <p className="hero-copy">
-              Flujo listo para crear una carrera, sumar jugadores o equipos, configurar el modo y correr hasta el nivel 7.
+              Cree o unase a una sala para empezar
             </p>
             <div className="stack-note">
-              <span>{isFirebaseConfigured() ? "Modo Firebase activo" : "Modo local activo"}</span>
-              <span>{isFirebaseConfigured() ? "Realtime Database conectado" : "Usando fallback local hasta cargar credenciales"}</span>
+              <span>{isFirebaseConfigured() ? "Online, listo para conectar" : "Offline"}</span>
+              <span>{isFirebaseConfigured() ? "Mesas au Vivo" : "Usando fallback local hasta cargar credenciales"}</span>
             </div>
           </div>
 
@@ -612,7 +612,7 @@ function App() {
             <div className="panel-block">
               <div className="eyebrow">Crear carrera</div>
               <label className="field">
-                <span>Nombre del jugador o equipo creador</span>
+                <span>Nombre del jugador / equipo creador</span>
                 <input value={createName} onChange={(event) => setCreateName(event.target.value)} maxLength={18} />
               </label>
               <button className="primary-btn" onClick={handleCreateRoom}>
@@ -623,7 +623,7 @@ function App() {
             <div className="panel-block">
               <div className="eyebrow">Unirse</div>
               <label className="field">
-                <span>Código de carrera</span>
+                <span>Código de carrera (arriba a la izquierda)</span>
                 <input value={joinCode} onChange={(event) => setJoinCode(event.target.value)} maxLength={4} inputMode="numeric" />
               </label>
               <button className="secondary-btn" onClick={handleJoinRoom}>
@@ -687,13 +687,10 @@ function App() {
       <section className="screen">
         <header className="topbar">
           <div>
-            <div className="eyebrow">Sala</div>
+            <div className="eyebrow">Sala Nro</div>
             <h2>{room.code}</h2>
           </div>
           <div className="topbar-actions">
-            <button className={!session.controlledPlayerId ? "chip-btn active" : "chip-btn"} onClick={() => handleSetControl("")}>
-              Modo compartido
-            </button>
             <button className="ghost-btn" onClick={handleLeaveRoom}>
               Salir
             </button>
@@ -705,7 +702,7 @@ function App() {
             <div className="panel-header">
               <div>
                 <div className="eyebrow">Configuración</div>
-                <h3>Jugadores o equipos</h3>
+                <h3>Jugadores / equipos</h3>
               </div>
               <div className="count-pill">{orderedPlayers.length}/6</div>
             </div>
@@ -714,7 +711,7 @@ function App() {
 
             <div className="add-player-row">
               <input
-                placeholder="Nuevo jugador o equipo"
+                placeholder="Nuevo jugador / equipo"
                 value={newPlayerName}
                 onChange={(event) => setNewPlayerName(event.target.value)}
                 maxLength={18}
@@ -741,23 +738,24 @@ function App() {
                 disabled={!isHost}
               >
                 <strong>CLASICO</strong>
-                <span>Ruleta aleatoria. Cada avance acumula entre 1 y 6 tragos al resultado final.</span>
+                <span>Ruleta aleatoria. Cada avance se paga con entre 1 y 6 tragos.</span>
               </button>
               <button
                 className={room.settings.mode === GAME_MODES.RANDOM ? "mode-card active" : "mode-card"}
                 onClick={() => runRoomMutation((draft) => setGameMode(draft, GAME_MODES.RANDOM))}
                 disabled={!isHost}
               >
-                <strong>RANDOM</strong>
-                <span>Pruebas mixtas. Puede haber varios avances salvo en la llegada final.</span>
+                <strong>MINIJUEGOS</strong>
+                <span>Minijuegos, el mas ducho va subiendo. Cada avance se paga con entre 1 y 6 tragos.</span>
               </button>
             </div>
 
             <div className="rules-panel">
-              <div className="rule-line">El creador queda asignado como jugador 1.</div>
-              <div className="rule-line">La carrera termina cuando un caballo llega primero al nivel {FINISH_LEVEL}.</div>
+              <div className="rule-line">El creador queda asignado como Administrador y Director de la partida</div>
+              <div className="rule-line">La carrera termina cuando un caballo llega primero al {FINISH_LEVEL}.</div>
               <div className="rule-line">El ganador reparte los tragos que apostó al principio.</div>
               <div className="rule-line">Los jugadores que se unan con código eligen acá el caballo que les corresponde.</div>
+              <div className="rule-line">El DIRECTOR tiene que encargarse de esperar y dirigir cada ronda de la carrera.</div>
             </div>
 
             {setupIssues.length ? (
@@ -771,7 +769,7 @@ function App() {
             ) : null}
 
             <button className="primary-btn block-btn" onClick={handleStartBets} disabled={!isHost || actionLocked}>
-              Continuar a apuestas
+              Continuar a las apuestas
             </button>
           </section>
         </div>
@@ -784,7 +782,7 @@ function App() {
       <section className="screen">
         <header className="topbar">
           <div>
-            <div className="eyebrow">Sala {room.code}</div>
+            <div className="eyebrow">Sala Nro:{room.code}</div>
             <h2>Apuestas iniciales</h2>
           </div>
           <button className="ghost-btn" onClick={handleLeaveRoom}>
@@ -796,7 +794,7 @@ function App() {
           <div className="panel-header">
             <div>
               <div className="eyebrow">Apuesta</div>
-              <h3>Cada jugador o equipo apuesta sus tragos</h3>
+              <h3>Cuantos tragos apostas?(Luego los tenes que tomar)</h3>
             </div>
           </div>
 
@@ -838,18 +836,18 @@ function App() {
                     onChange={(event) => runRoomMutation((draft) => setPlayerBet(draft, player.id, event.target.value))}
                     disabled={!canEditBet(player.id)}
                   />
-                  <span className="player-meta">Rango sugerido: 1 a 99 tragos</span>
+                  <span className="player-meta">Rango: 1 a 99 tragos</span>
                 </div>
 
                 {!canEditBet(player.id) ? (
-                  <div className="bet-lock-note">Este caballo ya tiene un celular asignado. La apuesta la edita ese dispositivo.</div>
+                  <div className="bet-lock-note">Este caballo ya tiene un celular asignado.</div>
                 ) : null}
               </article>
             ))}
           </div>
 
           <button className="primary-btn block-btn" onClick={handleContinueToPredrink} disabled={!isHost || actionLocked}>
-            Confirmar apuestas y mostrar tragos a tomar
+            Confirmar apuestas y pagar tragos
           </button>
         </div>
       </section>
@@ -862,7 +860,7 @@ function App() {
         <header className="topbar">
           <div>
             <div className="eyebrow">Sala {room.code}</div>
-            <h2>Tragos previos a la carrera</h2>
+            <h2>A Beber</h2>
           </div>
           <button className="ghost-btn" onClick={handleLeaveRoom}>
             Salir
@@ -874,7 +872,7 @@ function App() {
             <div className="panel-header">
               <div>
                 <div className="eyebrow">Resumen</div>
-                <h3>Todos deben tomar lo apostado</h3>
+                <h3>Todos deben pagar lo apostado tomando la cantidad de tragos indicada</h3>
               </div>
             </div>
 
@@ -891,7 +889,7 @@ function App() {
                     </div>
                   </div>
                   <button className="secondary-btn" onClick={() => handleConfirmPredrink(player.id)} disabled={!canControlPlayer(player.id)}>
-                    {player.drankBeforeStart ? "Confirmado" : "Ya tomó"}
+                    {player.drankBeforeStart ? "Chupado XD" : "Ya tomó"}
                   </button>
                 </article>
               ))}
@@ -908,7 +906,7 @@ function App() {
 
             <div className="rules-panel">
               <div className="rule-line">Modo seleccionado: {room.settings.mode}</div>
-              <div className="rule-line">Nivel inicial: 0</div>
+              <div className="rule-line">Recorda que cada vez que el caballo suba 1 escalon, tendras que tomar la canidad que se te indique</div>
               <div className="rule-line">Meta: {FINISH_LEVEL}</div>
             </div>
 
@@ -926,7 +924,7 @@ function App() {
 
     return (
       <div className="track-shell fair-shell">
-        <div className="track-band finish-band">FINISH LINE</div>
+        <div className="track-band finish-band">LLEGADA</div>
         <div className="track-levels fair-levels">
           {levels.map((level) => (
             <div key={level} className={level === FINISH_LEVEL ? "track-level fair-level finish" : "track-level fair-level"}>
@@ -956,7 +954,7 @@ function App() {
             </div>
           ))}
         </div>
-        <div className="track-band start-band">START</div>
+        <div className="track-band start-band">LARGADA</div>
       </div>
     );
   }
@@ -967,13 +965,13 @@ function App() {
           <div className="panel compact-panel" ref={challengePanelRef}>
             <div className="panel-header">
               <div>
-                <div className="eyebrow">Modo RANDOM</div>
-                <h3>Siguiente prueba</h3>
+                <div className="eyebrow">Modo MINIJUEGO</div>
+                <h3>Siguiente etapa</h3>
               </div>
             </div>
-            <p className="panel-copy">Generá una metodología aleatoria para decidir qué caballo sube un nivel.</p>
+            <p className="panel-copy">Generá un nuevo minijuego para que el ganador suba un escalon.</p>
             <button className="primary-btn block-btn" onClick={handleCreateRandomChallenge} disabled={!isHost || actionLocked}>
-              Generar desafío
+              GENERAR MINIJUEGO
             </button>
           </div>
       );
@@ -982,7 +980,7 @@ function App() {
     if (currentChallenge.type === RANDOM_CHALLENGE_TYPES.MATH) {
       return (
         <div className="panel compact-panel" ref={challengePanelRef}>
-          <div className="eyebrow">Desafío matemático</div>
+          <div className="eyebrow">Operacion matemática</div>
           <h3>{currentChallenge.prompt}</h3>
           <p className="panel-copy">Gana quien responda primero correctamente.</p>
           {controlledPlayer ? (
@@ -993,7 +991,7 @@ function App() {
               </button>
             </div>
           ) : (
-            <p className="panel-copy">Este dispositivo está en modo compartido. Para competir en RANDOM conviene asignarlo a un jugador.</p>
+            <p className="panel-copy">Este dispositivo está en modo compartido. Para competir en Minijuegos conviene asignarlo a un jugador.</p>
           )}
           <button className="primary-btn block-btn" onClick={handleResolveRandomChallenge} disabled={!isHost || actionLocked}>
             Resolver ronda
@@ -1006,8 +1004,8 @@ function App() {
       return (
         <div className="panel compact-panel" ref={challengePanelRef}>
           <div className="eyebrow">Ruleta aleatoria</div>
-          <h3>Selección visual del caballo</h3>
-          <p className="panel-copy">Esta ronda reemplaza el dado por una ruleta como la del modo clásico.</p>
+          <h3>Rula</h3>
+          <p className="panel-copy">Esta rula te sube un caballo RANDOM =D.</p>
           <button className="primary-btn block-btn" onClick={handleResolveRandomChallenge} disabled={!isHost || actionLocked}>
             Girar ruleta RANDOM
           </button>
@@ -1067,10 +1065,10 @@ function App() {
     if (currentChallenge.type === RANDOM_CHALLENGE_TYPES.HIDDEN_CARD) {
       return (
         <div className="panel compact-panel" ref={challengePanelRef}>
-          <div className="eyebrow">Carta oculta</div>
+          <div className="eyebrow">Carta Justa</div>
           <h3>{currentChallenge.prompt}</h3>
           <div className="rules-panel">
-            <div className="rule-line">Regla de la ronda: {currentChallenge.rule.label}</div>
+            <div className="rule-line">Sube el que tiene: {currentChallenge.rule.label}</div>
           </div>
           <div className="card-grid">
             {orderedPlayers.map((player) => (
@@ -1081,7 +1079,7 @@ function App() {
             ))}
           </div>
           <button className="primary-btn block-btn" onClick={handleResolveRandomChallenge} disabled={!isHost || actionLocked}>
-            Resolver carta
+            Resolver ronda
           </button>
         </div>
       );
@@ -1122,7 +1120,7 @@ function App() {
         <div className="panel compact-panel">
           <div className="eyebrow">Número objetivo</div>
           <h3>{currentChallenge.prompt}</h3>
-          <p className="panel-copy">La app ya eligió un número objetivo oculto. Avanzan los más cercanos.</p>
+          <p className="panel-copy">Hay un numero objetivo secreto. Avanzan los más se acerquen.</p>
           {controlledPlayer ? (
             <div className="answer-row">
               <input
@@ -1184,7 +1182,7 @@ function App() {
           <div className="panel compact-panel">
             <div className="eyebrow">Ruleta</div>
             <h3>Resolución del nivel</h3>
-            <p className="panel-copy">La ruleta decide quién gana el nivel. Cada avance suma una penalidad aleatoria de 1 a 6 tragos.</p>
+            <p className="panel-copy">La ruleta decide quién gana la ronda. Cada avance toma una suma aleatoria de 1 a 6 tragos.</p>
             <button className="primary-btn block-btn" onClick={handleSpinClassic} disabled={!isHost || actionLocked}>
               Girar ruleta
             </button>
@@ -1237,9 +1235,6 @@ function App() {
             <h2>Hipódromo</h2>
           </div>
           <div className="topbar-actions">
-            <button className={!session.controlledPlayerId ? "chip-btn active" : "chip-btn"} onClick={() => handleSetControl("")}>
-              Compartido
-            </button>
             {controlledPlayer ? <div className="current-controller">Controlando: {controlledPlayer.name}</div> : null}
             <button className="ghost-btn" onClick={handleLeaveRoom}>
               Salir
@@ -1286,7 +1281,7 @@ function App() {
                       </div>
                     );
                   })}
-                  <div className="roulette-center-disc">RUEDA</div>
+                  <div className="roulette-center-disc">RULA</div>
                 </div>
               </div>
               <div className="roulette-current">
@@ -1338,7 +1333,7 @@ function App() {
             <div className="rules-panel">
               <div className="rule-line">Apuesta del ganador: {winner?.betDrinks || 0} tragos</div>
               <div className="rule-line">Total apostado en la mesa: {totalBetDrinks} tragos</div>
-              <div className="rule-line">Penalidad acumulada del ganador: {winner?.totalPenaltyDrinks || 0} tragos</div>
+              <div className="rule-line">Pagos totales por todos los escalones: {winner?.totalPenaltyDrinks || 0} tragos</div>
             </div>
             <button className="primary-btn" onClick={handleRestartRoom} disabled={!isHost}>
               Jugar otra carrera

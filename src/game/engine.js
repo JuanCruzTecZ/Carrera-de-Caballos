@@ -313,7 +313,7 @@ export function getSetupIssues(room) {
     const connectionCounts = getPlayerConnectionCounts(room);
     const disconnected = players.filter((player) => (connectionCounts[player.id] || 0) < 1);
     if (disconnected.length > 0) {
-      issues.push("En RANDOM cada jugador o equipo necesita al menos un celular conectado de forma individual.");
+      issues.push("En MINIJUEGOS cada jugador o equipo necesita al menos un celular conectado de forma individual.");
     }
   }
 
@@ -401,7 +401,7 @@ export function resolveClassicSpin(room) {
   recordHistory(room, {
     mode: GAME_MODES.CLASSIC,
     title: `Ronda ${room.race.round}`,
-    description: `${winner.name} ganó la ruleta, avanzó un nivel y acumuló ${roundPenalty} tragos.`,
+    description: `${winner.name} ganó la ruleta, avanzó un nivel y tiene que tomar ${roundPenalty} tragos.`,
     winners: [winner.id],
   });
 
@@ -409,7 +409,7 @@ export function resolveClassicSpin(room) {
     return finishRace(
       room,
       winner.id,
-      `${winner.name} llegó al nivel ${FINISH_LEVEL} y debe repartir ${winner.betDrinks} tragos.`,
+      `${winner.name} llegó al escalon ${FINISH_LEVEL} y debe repartir ${winner.betDrinks} tragos.`,
     );
   }
 
@@ -559,7 +559,7 @@ function generatePokerChallenge(room) {
 
   return {
     type: RANDOM_CHALLENGE_TYPES.POKER,
-    prompt: "La app reparte una mano de póker automática entre todos.",
+    prompt: "se reparte una mano de pocker automatica.",
     hands,
   };
 }
@@ -573,7 +573,7 @@ function generateHiddenCardChallenge(room) {
 
   return {
     type: RANDOM_CHALLENGE_TYPES.HIDDEN_CARD,
-    prompt: "Cada caballo recibe una carta oculta. La regla sale al azar.",
+    prompt: "Cada caballo recibe una carta. Si cumple la regla sube.",
     rule: randomItem(HIDDEN_CARD_RULES),
     cards,
   };
@@ -582,7 +582,7 @@ function generateHiddenCardChallenge(room) {
 function generateSecretSymbolChallenge() {
   return {
     type: RANDOM_CHALLENGE_TYPES.SECRET_SYMBOL,
-    prompt: "Cada jugador elige un símbolo. Luego la app revela el símbolo ganador.",
+    prompt: "Eleji un simbolo. OJO Solo hay uno correcto",
     winnerSymbolId: randomItem(SECRET_SYMBOLS).id,
     picks: {},
   };
@@ -776,7 +776,7 @@ export function resolveRandomChallenge(room) {
       room,
       winners,
       `Ronda ${room.race.round}: Símbolo`,
-      `La app reveló ${symbol?.label || "un símbolo"} como ganador.`,
+      `Salio ${symbol?.label || "un símbolo"} como ganador.`,
     );
   }
 
@@ -795,7 +795,7 @@ export function resolveRandomChallenge(room) {
       room,
       winners,
       `Ronda ${room.race.round}: Número objetivo`,
-      `El número objetivo fue ${challenge.targetNumber}. Avanzan quienes quedaron más cerca.`,
+      `El número objetivo fue ${challenge.targetNumber}. Subem quienes quedaron más cerca.`,
     );
   }
 
