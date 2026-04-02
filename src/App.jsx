@@ -155,6 +155,18 @@ function App() {
   }, [room?.race?.currentChallenge, room?.phase]);
 
   useEffect(() => {
+    if (!room?.race?.overlay?.open) return undefined;
+
+    const interval = window.setInterval(() => {
+      setClock(Date.now());
+    }, 80);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [room?.race?.overlay?.open]);
+
+  useEffect(() => {
     if (!room || !session.controlledPlayerId) return;
     if (room.players?.[session.controlledPlayerId]) return;
     setSession((current) => ({ ...current, controlledPlayerId: "" }));
