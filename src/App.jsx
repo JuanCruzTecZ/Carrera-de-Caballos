@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   acquireLock,
   addPlayer,
@@ -89,6 +89,7 @@ function App() {
     title: "Ruleta del nivel",
   });
   const [roundFeedback, setRoundFeedback] = useState(null);
+  const challengePanelRef = useRef(null);
 
   useEffect(() => {
     saveSession(session);
@@ -181,6 +182,15 @@ function App() {
     const timeout = window.setTimeout(() => setRoundFeedback(null), 1800);
     return () => window.clearTimeout(timeout);
   }, [room?.race?.history?.[0]?.id, room?.phase]);
+
+  useEffect(() => {
+    if (room?.phase !== ROOM_PHASES.RACE || room?.settings?.mode !== GAME_MODES.RANDOM) return;
+    if (!currentChallenge || !challengePanelRef.current) return;
+    const timeout = window.setTimeout(() => {
+      challengePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+    return () => window.clearTimeout(timeout);
+  }, [currentChallenge?.type, room?.phase, room?.settings?.mode]);
 
   const orderedPlayers = useMemo(() => getOrderedPlayers(room || { players: {}, playerOrder: [] }), [room]);
   const connectionCounts = useMemo(() => (room ? getPlayerConnectionCounts(room) : {}), [room]);
@@ -893,7 +903,7 @@ function App() {
   function renderRandomChallengePanel() {
     if (!currentChallenge) {
         return (
-          <div className="panel compact-panel">
+          <div className="panel compact-panel" ref={challengePanelRef}>
             <div className="panel-header">
               <div>
                 <div className="eyebrow">Modo RANDOM</div>
@@ -910,7 +920,7 @@ function App() {
 
     if (currentChallenge.type === RANDOM_CHALLENGE_TYPES.MATH) {
       return (
-        <div className="panel compact-panel">
+        <div className="panel compact-panel" ref={challengePanelRef}>
           <div className="eyebrow">Desafío matemático</div>
           <h3>{currentChallenge.prompt}</h3>
           <p className="panel-copy">Gana quien responda primero correctamente.</p>
@@ -933,7 +943,7 @@ function App() {
 
     if (currentChallenge.type === RANDOM_CHALLENGE_TYPES.DICE) {
       return (
-        <div className="panel compact-panel">
+        <div className="panel compact-panel" ref={challengePanelRef}>
           <div className="eyebrow">Ruleta aleatoria</div>
           <h3>Selección visual del caballo</h3>
           <p className="panel-copy">Esta ronda reemplaza el dado por una ruleta como la del modo clásico.</p>
@@ -949,7 +959,7 @@ function App() {
       const myTaps = controlledPlayer ? currentChallenge.taps?.[controlledPlayer.id] || 0 : 0;
 
       return (
-        <div className="panel compact-panel">
+        <div className="panel compact-panel" ref={challengePanelRef}>
           <div className="eyebrow">Tap rápido</div>
           <h3>{currentChallenge.prompt}</h3>
           <div className="tap-timer">{timeLeft}</div>
@@ -972,7 +982,7 @@ function App() {
 
     if (currentChallenge.type === RANDOM_CHALLENGE_TYPES.POKER) {
       return (
-        <div className="panel compact-panel">
+        <div className="panel compact-panel" ref={challengePanelRef}>
           <div className="eyebrow">Póker automático</div>
           <h3>{currentChallenge.prompt}</h3>
           <div className="mini-results">
@@ -995,7 +1005,7 @@ function App() {
 
     if (currentChallenge.type === RANDOM_CHALLENGE_TYPES.HIDDEN_CARD) {
       return (
-        <div className="panel compact-panel">
+        <div className="panel compact-panel" ref={challengePanelRef}>
           <div className="eyebrow">Carta oculta</div>
           <h3>{currentChallenge.prompt}</h3>
           <div className="rules-panel">
@@ -1018,7 +1028,7 @@ function App() {
 
     if (currentChallenge.type === RANDOM_CHALLENGE_TYPES.SECRET_SYMBOL) {
       return (
-        <div className="panel compact-panel">
+        <div className="panel compact-panel" ref={challengePanelRef}>
           <div className="eyebrow">Símbolo secreto</div>
           <h3>{currentChallenge.prompt}</h3>
           {controlledPlayer ? (

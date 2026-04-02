@@ -1037,16 +1037,77 @@ input:focus {
     flex-direction: column;
   }
 
-  .track-level {
-    grid-template-columns: 1fr;
+  .fair-shell {
+    padding: 0.55rem;
+    border-width: 5px;
   }
 
-  .track-lanes {
-    flex-direction: column;
+  .track-band {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
   }
 
-  .track-lane {
-    width: 100%;
+  .fair-levels {
+    min-width: 100%;
+    gap: 0.24rem;
+  }
+
+  .fair-level {
+    grid-template-columns: 30px 1fr;
+    gap: 0.28rem;
+  }
+
+  .fair-label {
+    font-size: 0.82rem;
+    border-radius: 10px;
+  }
+
+  .fair-lanes {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.22rem;
+  }
+
+  .fair-lane {
+    min-height: 50px;
+    padding: 0.18rem;
+    border-radius: 10px;
+  }
+
+  .peg-hole {
+    width: 5px;
+    height: 5px;
+  }
+
+  .peg-hole-a {
+    left: 5px;
+    top: 5px;
+  }
+
+  .peg-hole-b {
+    right: 5px;
+    bottom: 5px;
+  }
+
+  .horse-piece {
+    min-height: 42px;
+    padding: 0.12rem;
+    gap: 0.18rem;
+    border-radius: 9px;
+  }
+
+  .horse-number {
+    width: 1.05rem;
+    height: 1.05rem;
+    font-size: 0.62rem;
+  }
+
+  .horse-name {
+    font-size: 0.5rem;
+    line-height: 1;
+    white-space: normal;
+    text-align: center;
   }
 
   .symbol-grid {
@@ -1056,5 +1117,52 @@ input:focus {
   .bet-actions,
   .bet-meta-row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .roulette-card {
+    padding: 0.9rem;
+    border-radius: 20px;
+  }
+
+  .roulette-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .roulette-stage {
+    width: min(88vw, 360px);
+  }
+
+  .roulette-pointer {
+    border-left-width: 12px;
+    border-right-width: 12px;
+    border-bottom-width: 22px;
+  }
+
+  .round-segment-label {
+    top: 0.45rem;
+    gap: 0.08rem;
+  }
+
+  .round-segment-label span:last-child {
+    max-width: 58px;
+    font-size: 0.54rem;
+  }
+
+  .roulette-number {
+    width: 1.4rem;
+    height: 1.4rem;
+    font-size: 0.72rem;
+  }
+
+  .roulette-center-disc {
+    width: 72px;
+    height: 72px;
+    font-size: 0.72rem;
+  }
+
+  .roulette-current {
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
   }
 }
